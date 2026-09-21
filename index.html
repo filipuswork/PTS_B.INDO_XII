@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<title>PTS Bahasa Indonesia — Kelas XII</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { font-family:'Segoe UI', system-ui, -apple-system, sans-serif; background:#0f172a; color:#e2e8f0; -webkit-user-select:none; user-select:none; overflow-x:hidden; }
+
+  #lockScreen { position:fixed; inset:0; background:linear-gradient(135deg,#1e293b,#0f172a); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; text-align:center; }
+  #lockScreen h1 { font-size:1.6rem; margin-bottom:8px; color:#38bdf8; }
+  #lockScreen p { color:#94a3b8; margin-bottom:24px; font-size:.9rem; line-height:1.5; max-width:420px; }
+  #lockScreen input, #lockScreen select { width:100%; max-width:320px; padding:14px 16px; border-radius:12px; border:2px solid #334155; background:#1e293b; color:#fff; font-size:1rem; margin-bottom:12px; outline:none; }
+  #lockScreen input:focus, #lockScreen select:focus { border-color:#38bdf8; }
+  #lockScreen button { width:100%; max-width:320px; padding:14px; border-radius:12px; border:none; background:#38bdf8; color:#0f172a; font-weight:700; font-size:1rem; cursor:pointer; }
+  #lockScreen button:active { transform:scale(.98); }
+  .rules { text-align:left; max-width:380px; margin:16px auto 0; font-size:.8rem; color:#94a3b8; }
+  .rules li { margin-bottom:6px; }
+
+  #examHeader { position:sticky; top:0; z-index:50; background:#1e293b; padding:10px 14px; display:none; justify-content:space-between; align-items:center; border-bottom:2px solid #334155; font-size:.85rem; }
+  #examHeader .timer { font-weight:700; color:#fbbf24; font-size:1rem; }
+  #examHeader .timer.danger { color:#f87171; animation:pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity:.4; } }
+  #examHeader .stats { color:#94a3b8; }
+  #examHeader .stats span { color:#f87171; font-weight:700; }
+
+  #progressBarWrap { position:sticky; top:56px; z-index:49; background:#0f172a; padding:8px 14px; border-bottom:1px solid #334155; }
+  #progressBarWrap .labels { display:flex; justify-content:space-between; font-size:.75rem; color:#94a3b8; margin-bottom:5px; }
+  #progressBarWrap .labels b { color:#38bdf8; }
+  #progressBar { width:100%; height:6px; background:#1e293b; border-radius:3px; overflow:hidden; }
+  #progressFill { height:100%; width:0%; background:linear-gradient(90deg,#38bdf8,#22c55e); transition:width .3s; }
+
+  #examContent { display:none; padding:14px; max-width:900px; margin:0 auto; padding-bottom:120px; }
+  .question-page { display:none; }
+  .question-page.active { display:block; animation:fadeIn .25s; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  .question { background:#1e293b; border-radius:12px; padding:18px; border:1px solid #334155; min-height:60vh; }
+  .question .q-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid #334155; }
+  .question .q-badge { background:#0c4a6e; color:#38bdf8; font-weight:700; font-size:.75rem; padding:4px 10px; border-radius:20px; letter-spacing:.5px; }
+  .question .q-type { font-size:.75rem; color:#94a3b8; }
+  .question .q-text { font-size:1rem; line-height:1.6; margin-bottom:16px; }
+  .question .q-number { color:#38bdf8; font-weight:700; margin-right:4px; }
+  .question .teks { display:block; margin:10px 0; padding:12px 14px; background:#0f172a; border-left:3px solid #64748b; font-style:italic; font-size:.88rem; border-radius:0 6px 6px 0; line-height:1.6; }
+  .options { list-style:none; display:flex; flex-direction:column; gap:10px; }
+  .options li { display:flex; align-items:flex-start; gap:12px; padding:14px 16px; background:#0f172a; border-radius:10px; border:2px solid #334155; cursor:pointer; transition:.15s; font-size:.92rem; line-height:1.5; }
+  .options li:active { transform:scale(.99); }
+  .options li.selected { border-color:#38bdf8; background:#0c4a6e; }
+  .options li.selected .label { background:#38bdf8; color:#0f172a; }
+  .options li .label { display:inline-flex; align-items:center; justify-content:center; min-width:26px; height:26px; border-radius:50%; background:#334155; font-weight:700; font-size:.8rem; flex-shrink:0; }
+
+  .essay-item textarea { width:100%; min-height:200px; padding:14px; border-radius:10px; border:2px solid #334155; background:#0f172a; color:#e2e8f0; font-family:inherit; font-size:.92rem; resize:vertical; outline:none; line-height:1.6; -webkit-user-select:text; user-select:text; }
+  .essay-item textarea:focus { border-color:#38bdf8; }
+
+  #bottomNav { position:fixed; bottom:0; left:0; right:0; z-index:60; background:#1e293b; border-top:2px solid #334155; padding:10px 14px; display:none; justify-content:space-between; align-items:center; gap:8px; box-shadow:0 -4px 20px rgba(0,0,0,.4); }
+  #bottomNav button { padding:12px 18px; border-radius:10px; border:none; font-weight:700; font-size:.85rem; cursor:pointer; transition:.15s; display:flex; align-items:center; gap:6px; }
+  #bottomNav button:active { transform:scale(.96); }
+  #bottomNav button:disabled { opacity:.4; cursor:not-allowed; }
+  #btnPrev { background:#334155; color:#e2e8f0; }
+  #btnNext { background:#38bdf8; color:#0f172a; }
+  #btnGrid { background:#475569; color:#e2e8f0; padding:12px 14px; }
+  #btnSubmit { background:#22c55e; color:#0f172a; display:none; }
+
+  #gridModal { position:fixed; inset:0; background:rgba(15,23,42,.95); z-index:9200; display:none; flex-direction:column; padding:20px; }
+  #gridModal .grid-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:10px; border-bottom:2px solid #334155; }
+  #gridModal .grid-head h3 { color:#38bdf8; font-size:1.1rem; }
+  #gridModal .grid-head button { background:#dc2626; color:#fff; border:none; padding:8px 14px; border-radius:8px; font-weight:700; cursor:pointer; font-size:.85rem; }
+  #gridModal .grid-legend { font-size:.75rem; color:#94a3b8; margin-bottom:12px; display:flex; gap:14px; flex-wrap:wrap; }
+  #gridModal .grid-legend span::before { content:'■ '; font-size:1rem; vertical-align:middle; }
+  #gridModal .grid-legend .leg-done::before { color:#22c55e; }
+  #gridModal .grid-legend .leg-current::before { color:#38bdf8; }
+  #gridModal .grid-legend .leg-empty::before { color:#334155; }
+  #gridContainer { display:grid; grid-template-columns:repeat(auto-fill, minmax(48px, 1fr)); gap:8px; overflow-y:auto; padding-bottom:20px; }
+  #gridContainer .grid-btn { aspect-ratio:1; border-radius:8px; border:2px solid #334155; background:#1e293b; color:#e2e8f0; font-weight:700; font-size:.9rem; cursor:pointer; transition:.15s; }
+  #gridContainer .grid-btn.done { background:#166534; border-color:#22c55e; color:#fff; }
+  #gridContainer .grid-btn.current { background:#0c4a6e; border-color:#38bdf8; color:#38bdf8; }
+  #gridContainer .grid-btn:active { transform:scale(.95); }
+
+  #warningOverlay { position:fixed; inset:0; background:rgba(15,23,42,.97); z-index:9000; display:none; flex-direction:column; align-items:center; justify-content:center; padding:24px; text-align:center; }
+  #warningOverlay .icon { font-size:4rem; margin-bottom:16px; }
+  #warningOverlay h2 { color:#f87171; font-size:1.4rem; margin-bottom:10px; }
+  #warningOverlay p { color:#cbd5e1; font-size:.95rem; line-height:1.6; max-width:400px; margin-bottom:20px; }
+  #warningOverlay button { padding:14px 32px; border-radius:12px; border:none; background:#38bdf8; color:#0f172a; font-weight:700; font-size:1rem; cursor:pointer; }
+
+  #resultScreen { position:fixed; inset:0; background:linear-gradient(135deg,#1e293b,#0f172a); z-index:9500; display:none; flex-direction:column; align-items:center; justify-content:center; padding:24px; text-align:center; }
+  #resultScreen .icon { font-size:4rem; margin-bottom:16px; }
+  #resultScreen h2 { color:#22c55e; font-size:1.5rem; margin-bottom:10px; }
+  #resultScreen p { color:#cbd5e1; font-size:.95rem; line-height:1.6; max-width:440px; margin-bottom:8px; }
+  #resultScreen .status { font-size:1rem; color:#fbbf24; font-weight:700; margin:10px 0; }
+  #resultScreen .log { font-size:.8rem; color:#94a3b8; margin-top:12px; text-align:left; max-width:440px; }
+
+  #toast { position:fixed; top:70px; left:50%; transform:translateX(-50%) translateY(-120%); background:#dc2626; color:#fff; padding:12px 20px; border-radius:10px; font-size:.85rem; font-weight:600; z-index:8000; transition:.3s; box-shadow:0 8px 24px rgba(220,38,38,.5); max-width:90vw; text-align:center; }
+  #toast.show { transform:translateX(-50%) translateY(0); }
+
+  #rotateWarning { position:fixed; inset:0; background:#0f172a; z-index:9800; display:none; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px; }
+  #rotateWarning .icon { font-size:4rem; margin-bottom:16px; }
+  #rotateWarning p { color:#94a3b8; font-size:.95rem; }
+
+  @media (max-width:600px) {
+    #examContent { padding:10px; }
+    .question { padding:14px; }
+    .question .q-text { font-size:.92rem; }
+    .options li { padding:12px; font-size:.86rem; }
+    #bottomNav button { padding:10px 14px; font-size:.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<div id="lockScreen">
+  <h1>🔒 PTS BAHASA INDONESIA</h1>
+  <p><strong>Kelas XII · Semester Ganjil</strong><br>40 PG + 5 Uraian · 90 menit</p>
+  <input type="text" id="inputNama" placeholder="Nama Lengkap" autocomplete="off" />
+  <select id="inputKelas">
+    <option value="">— Pilih Kelas —</option>
+    <option value="XII.3">XII.3</option>
+    <option value="XII.4">XII.4</option>
+  </select>
+  <input type="text" id="inputToken" placeholder="Token Ujian" autocomplete="off" />
+  <button id="startBtn">▶ MULAI UJIAN</button>
+  <div class="rules">
+    <strong style="color:#f87171;">⚠️ ATURAN UJIAN:</strong>
+    <ul>
+      <li>1 halaman = 1 soal. Gunakan tombol <b>← / →</b> untuk navigasi.</li>
+      <li>Ujian berjalan dalam mode <b>fullscreen</b>.</li>
+      <li>Keluar fullscreen / pindah tab = <b>pelanggaran</b>.</li>
+      <li>3 pelanggaran = ujian <b>otomatis dikumpulkan</b>.</li>
+      <li>Copy-paste, klik kanan, DevTools <b>diblokir</b>.</li>
+    </ul>
+  </div>
+</div>
+
+<div id="examHeader">
+  <div>
+    <div class="stats">👤 <span id="hdrNama">-</span></div>
+    <div class="stats">Pelanggaran: <span id="hdrViolation">0</span>/3</div>
+  </div>
+  <div class="timer" id="timerDisplay">90:00</div>
+</div>
+
+<div id="progressBarWrap" style="display:none;">
+  <div class="labels">
+    <span>Soal <b id="currentNum">1</b> dari <b id="totalNum">45</b></span>
+    <span>Terjawab: <b id="answeredCount">0</b></span>
+  </div>
+  <div id="progressBar"><div id="progressFill"></div></div>
+</div>
+
+<div id="examContent">
+  <div class="question-page active" id="questionPage">
+    <div class="question" id="questionBox"></div>
+  </div>
+</div>
+
+<div id="bottomNav">
+  <button id="btnPrev" disabled>← Sebelumnya</button>
+  <button id="btnGrid" title="Daftar Soal">☰</button>
+  <button id="btnNext">Berikutnya →</button>
+  <button id="btnSubmit">✅ Kumpulkan</button>
+</div>
+
+<div id="gridModal">
+  <div class="grid-head">
+    <h3>📋 Daftar Soal</h3>
+    <button id="gridClose">✕ Tutup</button>
+  </div>
+  <div class="grid-legend">
+    <span class="leg-done">Sudah dijawab</span>
+    <span class="leg-current">Sedang dibuka</span>
+    <span class="leg-empty">Belum dijawab</span>
+  </div>
+  <div id="gridContainer"></div>
+</div>
+
+<div id="warningOverlay">
+  <div class="icon">⚠️</div>
+  <h2 id="warnTitle">PELANGGARAN TERDETEKSI!</h2>
+  <p id="warnMsg">Anda terdeteksi keluar dari halaman ujian.</p>
+  <button id="warnClose">Saya Mengerti, Lanjutkan Ujian</button>
+</div>
+
+<div id="resultScreen">
+  <div class="icon">✅</div>
+  <h2>UJIAN SELESAI</h2>
+  <p>Jawaban Anda telah dikirim ke server.</p>
+  <div class="status" id="resultStatus">Menunggu konfirmasi server...</div>
+  <div class="log" id="resultLog"></div>
+</div>
+
+<div id="toast"></div>
+
+<div id="rotateWarning">
+  <div class="icon">📱↔️</div>
+  <p>Putar perangkat ke <b>mode portrait</b> untuk melanjutkan ujian.</p>
+</div>
+
+<script src="config.js"></script>
+<script>
+/* DATA SOAL */
+const soalPG = [
+  { q:"Perhatikan pernyataan berikut!<br>1) Tempat dan tanggal surat<br>2) Salam pembuka<br>3) Paragraf pembuka<br>4) Paragraf isi<br>5) Paragraf penutup<br>6) Salam penutup<br><br>Yang termasuk bagian isi surat lamaran pekerjaan adalah …. ", o:["1), 2), 3)","2), 3), 4)","3), 4), 5)","4), 5), 6)","1), 5), 6)"] },
+  { q:"Perhatikan kalimat penutup surat lamaran berikut!<br>1) Demikian surat lamaran ini saya buat, atas perhatiannya saya ucapkan terima kasih.<br>2) Besar harapan saya Bapak/Ibu dapat menerima saya.<br>3) Atas perhatian Bapak/Ibu, saya mengucapkan terima kasih.<br><br>Kalimat penutup surat lamaran yang tepat adalah …. ", o:["1)","2)","3)","1) dan 2)","2) dan 3)"] },
+  { q:"Perhatikan kalimat pembuka surat lamaran berikut!<br><span class='teks'>\"Dengan ini saya mengajukan lamaran pekerjaan untuk mengisi lowongan di perusahaan Bapak.\"</span>Perbaikan kalimat pembuka tersebut yang tepat adalah …. ", o:["Dengan ini saya mengajukan lamaran pekerjaan sesuai dengan iklan yang dimuat di harian Kompas, 1 Juli 2024.","Saya mengajukan lamaran pekerjaan untuk mengisi lowongan di perusahaan Bapak.","Dengan hormat, saya mengajukan lamaran pekerjaan di perusahaan Bapak.","Berdasarkan iklan tersebut, saya mengajukan lamaran pekerjaan.","Saya bermaksud mengajukan lamaran pekerjaan di perusahaan Bapak."] },
+  { q:"Perhatikan kutipan surat lamaran berikut!<span class='teks'>\"Saya lulusan SMK jurusan Akuntansi. Saya menguasai komputer dan mampu bekerja sama dalam tim. Saya berharap dapat bergabung di perusahaan Bapak/Ibu.\"</span>Isi yang <em>tidak</em> termasuk dalam kutipan surat lamaran tersebut adalah …. ", o:["Pendidikan terakhir","Kemampuan komputer","Kemampuan kerja sama","Harapan bergabung","Gaji yang diinginkan"] },
+  { q:"Perhatikan kutipan surat lamaran berikut!<span class='teks'>\"Saya yang bertanda tangan di bawah ini, Nama: Andi Saputra, umur 22 tahun, pendidikan terakhir SMK Akuntansi.\"</span>Bagian tersebut termasuk dalam …. ", o:["Kepala surat","Salam pembuka","Paragraf pembuka","Paragraf isi","Paragraf penutup"] },
+  { q:"Perhatikan kutipan surat lamaran berikut!<span class='teks'>\"Berdasarkan informasi dari harian Kompas tanggal 1 Juli 2024, perusahaan Bapak/Ibu membutuhkan tenaga akuntan.\"</span>Kutipan tersebut termasuk dalam bagian …. ", o:["Kepala surat","Salam pembuka","Paragraf pembuka","Paragraf isi","Paragraf penutup"] },
+  { q:"Perhatikan kutipan surat lamaran berikut!<span class='teks'>\"Saya memiliki kemampuan mengoperasikan Microsoft Excel dan MYOB. Saya juga berpengalaman magang di PT Maju Jaya selama 3 bulan.\"</span>Kutipan tersebut termasuk dalam bagian …. ", o:["Kepala surat","Salam pembuka","Paragraf pembuka","Paragraf isi","Paragraf penutup"] },
+  { q:"Perhatikan kutipan surat lamaran berikut!<span class='teks'>\"Besar harapan saya Bapak/Ibu dapat menerima saya untuk bergabung di perusahaan ini. Atas perhatian Bapak/Ibu, saya ucapkan terima kasih.\"</span>Kutipan tersebut termasuk dalam bagian …. ", o:["Kepala surat","Salam pembuka","Paragraf pembuka","Paragraf isi","Paragraf penutup"] },
+  { q:"Perhatikan kutipan surat lamaran berikut!<span class='teks'>\"Bandung, 1 Juli 2024<br>Hal: Lamaran Pekerjaan<br>Lampiran: 3 lembar\"</span>Bagian tersebut termasuk dalam …. ", o:["Kepala surat / tanggal, hal, lampiran","Salam pembuka","Paragraf pembuka","Paragraf isi","Salam penutup"] },
+  { q:"Perhatikan kutipan surat lamaran berikut!<span class='teks'>\"Hormat saya,<br>Andi Saputra\"</span>Bagian tersebut termasuk dalam …. ", o:["Kepala surat","Salam pembuka","Paragraf pembuka","Paragraf isi","Salam penutup"] },
+  { q:"Perhatikan beberapa unsur berikut!<br>1) Nama lengkap<br>2) Tempat, tanggal lahir<br>3) Alamat<br>4) Nomor telepon<br>5) Riwayat pendidikan<br><br>Yang termasuk identitas diri dalam CV adalah …. ", o:["1), 2), 3), 4)","1), 3), 5)","2), 4), 5)","3), 4), 5)","1), 2), 5)"] },
+  { q:"Perhatikan kutipan CV berikut!<span class='teks'>Nama: Andi Saputra<br>Tempat, tanggal lahir: Bandung, 1 Juli 2002<br>Alamat: Jl. Merdeka No. 10, Bandung<br>Telepon: 0812-3456-7890<br>Hobi: Membaca<br>Pengalaman kerja: Magang di PT Maju Jaya</span>Informasi yang <em>tidak</em> termasuk identitas diri adalah …. ", o:["Nama","Tempat, tanggal lahir","Alamat","Hobi","Telepon"] },
+  { q:"Bagian CV yang berisi riwayat pendidikan adalah …. ", o:["Data pribadi","Pendidikan","Pengalaman kerja","Keterampilan","Referensi"] },
+  { q:"Perhatikan kutipan CV berikut!<span class='teks'>2018–2021: SMK Negeri 1 Bandung<br>2021–2024: Magang di PT Maju Jaya sebagai staf akuntansi</span>Kutipan tersebut termasuk dalam bagian CV …. ", o:["Data pribadi","Pendidikan","Pengalaman kerja","Keterampilan","Referensi"] },
+  { q:"Perhatikan kutipan CV berikut!<span class='teks'>Menguasai Microsoft Excel, MYOB, dan mampu bekerja dalam tim.</span>Kutipan tersebut termasuk dalam bagian CV …. ", o:["Data pribadi","Pendidikan","Pengalaman kerja","Keterampilan","Referensi"] },
+  { q:"Hal yang <em>tidak boleh</em> dicantumkan dalam CV adalah …. ", o:["Nama lengkap","Pendidikan terakhir","Pengalaman kerja","Alamat lengkap","Riwayat penyakit pribadi"] },
+  { q:"Tujuan utama pembuatan CV dalam melamar pekerjaan adalah …. ", o:["Menunjukkan kemampuan menulis","Memberikan informasi singkat tentang diri pelamar","Menarik perhatian atasan","Memenuhi syarat administrasi","Menunjukkan status sosial"] },
+  { q:"Perhatikan kutipan CV berikut!<span class='teks'>Dr. Budi Santoso, dosen Akuntansi Universitas Merdeka, telp. 0812-1111-2222</span>Kutipan tersebut termasuk dalam bagian CV …. ", o:["Data pribadi","Pendidikan","Pengalaman kerja","Keterampilan","Referensi"] },
+  { q:"Urutan yang tepat dalam menyusun CV adalah …. ", o:["Data pribadi – pendidikan – pengalaman kerja – keterampilan – referensi","Pendidikan – data pribadi – keterampilan – pengalaman kerja – referensi","Pengalaman kerja – pendidikan – data pribadi – referensi – keterampilan","Referensi – data pribadi – pendidikan – keterampilan – pengalaman kerja","Keterampilan – referensi – data pribadi – pendidikan – pengalaman kerja"] },
+  { q:"Bahasa yang tepat digunakan dalam penulisan CV adalah …. ", o:["Bahasa sehari-hari","Bahasa baku, singkat, dan jelas","Bahasa puitis","Bahasa gaul","Bahasa asing seluruhnya"] },
+  { q:"Perhatikan kutipan proposal usaha berikut!<span class='teks'>Usaha ini bergerak di bidang kuliner, khususnya makanan tradisional seperti batagor dan siomay yang dikemas modern.</span>Bidang usaha yang dijalankan adalah …. ", o:["Fashion","Kuliner","Teknologi","Pendidikan","Otomotif"] },
+  { q:"Perhatikan kutipan proposal usaha berikut!<span class='teks'>Target pasar kami adalah pelajar dan mahasiswa di sekitar kampus dan sekolah.</span>Target pasar usaha tersebut adalah …. ", o:["Anak-anak","Pelajar dan mahasiswa","Karyawan kantor","Ibu rumah tangga","Lansia"] },
+  { q:"Perhatikan kutipan proposal usaha berikut!<span class='teks'>Modal awal yang dibutuhkan untuk memulai usaha ini adalah Rp 5.000.000, yang berasal dari tabungan pribadi.</span>Modal awal usaha tersebut adalah …. ", o:["Rp 500.000","Rp 1.000.000","Rp 5.000.000","Rp 50.000.000","Rp 500.000.000"] },
+  { q:"Perhatikan kutipan proposal usaha berikut!<span class='teks'>Visi: Menjadi usaha kuliner terdepan di Bandung.<br>Misi: Menyediakan makanan berkualitas dengan harga terjangkau.</span>Kutipan tersebut termasuk dalam bagian proposal …. ", o:["Latar belakang","Visi dan misi","Analisis SWOT","Rencana anggaran","Penutup"] },
+  { q:"Perhatikan kutipan analisis SWOT berikut!<span class='teks'>Usaha kami masih memiliki keterbatasan dalam hal modal dan pengalaman.</span>Pernyataan tersebut termasuk dalam …. ", o:["Strength (Kekuatan)","Weakness (Kelemahan)","Opportunity (Peluang)","Threat (Ancaman)","Target (Sasaran)"] },
+  { q:"Perhatikan kutipan analisis SWOT berikut!<span class='teks'>Banyaknya pesaing serupa di sekitar lokasi usaha menjadi tantangan tersendiri.</span>Pernyataan tersebut termasuk dalam …. ", o:["Strength (Kekuatan)","Weakness (Kelemahan)","Opportunity (Peluang)","Threat (Ancaman)","Target (Sasaran)"] },
+  { q:"Bagian proposal yang berisi alasan usaha layak dijalankan adalah …. ", o:["Latar belakang","Visi dan misi","Analisis SWOT","Rencana anggaran","Penutup"] },
+  { q:"Bagian proposal yang berisi rincian biaya dan proyeksi keuntungan adalah …. ", o:["Latar belakang","Visi dan misi","Analisis SWOT","Rencana anggaran","Penutup"] },
+  { q:"Bahasa yang tepat digunakan dalam penulisan proposal usaha adalah …. ", o:["Bahasa santai","Bahasa baku, jelas, dan formal","Bahasa puitis","Bahasa daerah","Bahasa asing"] },
+  { q:"Tujuan utama pembuatan proposal usaha adalah …. ", o:["Memenuhi tugas sekolah","Menarik minat investor atau pihak pemberi dana","Menunjukkan kemampuan menulis","Memenuhi syarat administrasi","Menghabiskan waktu"] },
+  { q:"Perhatikan kutipan teks prosedur berikut!<span class='teks'>1) Siapkan bahan-bahan.<br>2) Haluskan bumbu.<br>3) Tumis bumbu hingga harum.<br>4) Masukkan bahan utama.<br>5) Masak hingga matang.</span>Langkah pertama dalam teks prosedur tersebut adalah …. ", o:["Haluskan bumbu","Siapkan bahan-bahan","Tumis bumbu","Masukkan bahan utama","Masak hingga matang"] },
+  { q:"Perhatikan kutipan teks prosedur berikut!<span class='teks'>1) Siapkan bahan.<br>2) Haluskan bumbu.<br>3) Tumis bumbu.<br>4) Masukkan bahan utama.<br>5) Masak hingga matang.</span>Langkah terakhir dalam teks prosedur tersebut adalah …. ", o:["Siapkan bahan","Haluskan bumbu","Tumis bumbu","Masukkan bahan utama","Masak hingga matang"] },
+  { q:"Perhatikan kutipan teks prosedur berikut!<span class='teks'>\"Siapkan bahan-bahan yang diperlukan. Haluskan bumbu. Tumis bumbu hingga harum.\"</span>Kata kerja imperatif dalam kutipan tersebut adalah …. ", o:["Siapkan, haluskan, tumis","Bahan, bumbu, harum","Yang, hingga, dan","Diperlukan, harum","Siapkan, bahan, bumbu"] },
+  { q:"Perhatikan kutipan teks prosedur berikut!<span class='teks'>\"Setelah bumbu harum, masukkan bahan utama, kemudian aduk hingga matang.\"</span>Konjungsi temporal dalam kutipan tersebut adalah …. ", o:["Setelah, kemudian","Bumbu, bahan","Harum, matang","Masukkan, aduk","Yang, hingga"] },
+  { q:"Struktur teks prosedur yang benar adalah …. ", o:["Tujuan – langkah-langkah – penutup","Tujuan – alat dan bahan – langkah-langkah – penutup","Langkah-langkah – tujuan – penutup","Penutup – tujuan – langkah-langkah","Alat dan bahan – penutup – tujuan"] },
+  { q:"Ciri kebahasaan teks prosedur yang benar adalah …. ", o:["Menggunakan kata kerja imperatif dan konjungsi temporal","Menggunakan kata kerja mental","Menggunakan kalimat tanya","Menggunakan bahasa puitis","Menggunakan kata sapaan"] },
+  { q:"Perhatikan kutipan teks prosedur berikut!<span class='teks'>\"Cara membuat batagor: Siapkan bahan-bahan, haluskan bumbu, tumis bumbu, masukkan bahan utama, masak hingga matang.\"</span>Tujuan teks prosedur tersebut adalah …. ", o:["Menjelaskan asal-usul batagor","Menjelaskan cara membuat batagor","Menjelaskan manfaat batagor","Menjelaskan harga batagor","Menjelaskan sejarah batagor"] },
+  { q:"Yang <em>bukan</em> ciri teks prosedur adalah …. ", o:["Menggunakan kata kerja imperatif","Menggunakan konjungsi temporal","Berisi langkah-langkah berurutan","Menggunakan bahasa puitis","Memiliki tujuan yang jelas"] },
+  { q:"Perhatikan kutipan teks prosedur berikut!<span class='teks'>\"Tujuan: Membuat batagor yang lezat.\"</span>Kutipan tersebut termasuk bagian teks prosedur …. ", o:["Tujuan","Alat dan bahan","Langkah-langkah","Penutup","Judul"] },
+  { q:"Bahasa yang tepat digunakan dalam teks prosedur adalah …. ", o:["Bahasa baku, singkat, dan jelas","Bahasa puitis","Bahasa gaul","Bahasa daerah","Bahasa asing"] }
+];
+
+const soalEssay = [
+  "Bacalah informasi lowongan pekerjaan berikut!<br><br><span style='display:block;padding:10px;background:#0f172a;border-left:3px solid #64748b;font-style:italic;margin:6px 0'>PT Maju Jaya membuka lowongan sebagai staf akuntansi. Syarat: SMK/SMA jurusan Akuntansi, menguasai Microsoft Excel, dan bersedia ditempatkan di Bandung. Lamaran dikirim ke Jl. Merdeka No. 10, Bandung.</span>Berdasarkan informasi tersebut, tuliskan <b>alamat tujuan surat lamaran pekerjaan</b> dengan tepat!",
+  "Sebutkan dan jelaskan <b>ketentuan identitas diri</b> yang harus dicantumkan pada bagian isi Daftar Riwayat Hidup (CV)!",
+  "Jelaskan <b>tiga unsur</b> yang harus ada dalam proposal usaha beserta fungsinya!",
+  "Tuliskan <b>urutan langkah-langkah</b> memulai usaha makanan (minimal 5 langkah) dengan bahasa yang runtut!",
+  "Perhatikan kutipan teks prosedur berikut!<br><br><span style='display:block;padding:10px;background:#0f172a;border-left:3px solid #64748b;font-style:italic;margin:6px 0'>\"Siapkan bahan-bahan. Haluskan bumbu. Tumis bumbu hingga harum. Masukkan bahan utama. Masak hingga matang.\"</span>Analisislah apakah kutipan tersebut <b>memenuhi syarat teks prosedur yang baik</b>! Jelaskan berdasarkan struktur dan ciri kebahasaannya."
+];
+
+let nama="", kelas="", token="", violations=0;
+let maxViolations = window.MAX_VIOLATIONS || 3;
+let timeLeft = (window.DURASI_MENIT || 90) * 60;
+let timerInterval = null, examActive = false;
+let jawabanPG = {}, jawabanEssay = {}, violationLog = [];
+let semuaSoal = [], currentIndex = 0;
+
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
+function showToast(m,d=2500){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._timeout);t._timeout=setTimeout(()=>t.classList.remove('show'),d);}
+function formatTime(s){const m=Math.floor(s/60).toString().padStart(2,'0');const ss=(s%60).toString().padStart(2,'0');return `${m}:${ss}`;}
+
+function catatPelanggaran(jenis){
+  violations++; violationLog.push(`[${new Date().toLocaleTimeString('id-ID')}] ${jenis}`);
+  document.getElementById('hdrViolation').textContent = violations;
+  if(violations >= maxViolations){ showToast('🚫 Pelanggaran maksimal! Ujian dikumpulkan otomatis.',3000); setTimeout(()=>submitUjian(true),1200); return; }
+  const ov=document.getElementById('warningOverlay');
+  const titles={fullscreen:'KELUAR DARI FULLSCREEN!',tabswitch:'PINDAH TAB / APLIKASI!',copy:'COPY DIBLOKIR!',rightclick:'KLIK KANAN DIBLOKIR!',devtools:'DEVTOOLS DIBLOKIR!'};
+  const msgs={fullscreen:'Anda terdeteksi keluar dari mode fullscreen. Silakan kembali ke fullscreen untuk melanjutkan ujian.',tabswitch:'Anda terdeteksi berpindah tab atau keluar dari halaman ujian.',copy:'Aktivitas menyalin (copy/cut/paste) diblokir.',rightclick:'Klik kanan dinonaktifkan.',devtools:'Upaya membuka Developer Tools terdeteksi dan diblokir.'};
+  document.getElementById('warnTitle').textContent = titles[jenis]||'PELANGGARAN!';
+  document.getElementById('warnMsg').textContent = (msgs[jenis]||'Pelanggaran terdeteksi.')+` (Pelanggaran ${violations} dari ${maxViolations})`;
+  ov.style.display='flex';
+  document.getElementById('warnClose').onclick=()=>{ov.style.display='none';if(jenis==='fullscreen'||jenis==='tabswitch')masukFullscreen();};
+}
+function masukFullscreen(){const el=document.documentElement;const r=el.requestFullscreen||el.webkitRequestFullscreen||el.msRequestFullscreen;if(r)r.call(el).catch(()=>{});}
+
+function buildSemuaSoal(){
+  const pgAcak = shuffle(soalPG.map((s,i)=>({type:'pg',idxAsli:i,data:s})));
+  const essayArr = soalEssay.map((q,i)=>({type:'essay',idxAsli:i,data:{q}}));
+  semuaSoal = [...pgAcak, ...essayArr];
+}
+
+function renderSoal(){
+  const soal = semuaSoal[currentIndex];
+  const box = document.getElementById('questionBox');
+  const huruf = ['A','B','C','D','E'];
+  document.getElementById('currentNum').textContent = currentIndex + 1;
+  document.getElementById('totalNum').textContent = semuaSoal.length;
+  document.getElementById('answeredCount').textContent = hitungTerjawab();
+  document.getElementById('progressFill').style.width = ((currentIndex+1)/semuaSoal.length*100)+'%';
+
+  if(soal.type==='pg'){
+    const s=soal.data, qid=soal.idxAsli;
+    let optHTML='';
+    s.o.forEach((o,j)=>{const sel=jawabanPG[qid]===j?'selected':'';optHTML+=`<li data-qid="${qid}" data-opt="${j}" class="${sel}"><span class="label">${huruf[j]}</span><span>${o}</span></li>`;});
+    box.innerHTML=`<div class="q-header"><span class="q-badge">SOAL ${currentIndex+1}</span><span class="q-type">Pilihan Ganda</span></div><div class="q-text"><span class="q-number">${currentIndex+1}.</span> ${s.q}</div><ul class="options">${optHTML}</ul>`;
+    box.querySelectorAll('.options li').forEach(li=>{
+      li.addEventListener('click',()=>{
+        const q=li.dataset.qid;
+        box.querySelectorAll(`.options li[data-qid="${q}"]`).forEach(x=>x.classList.remove('selected'));
+        li.classList.add('selected');
+        jawabanPG[q]=parseInt(li.dataset.opt);
+        simpanProgress(); updateProgress();
+      });
+    });
+  } else {
+    const s=soal.data, eid=soal.idxAsli;
+    box.innerHTML=`<div class="q-header"><span class="q-badge">SOAL ${currentIndex+1}</span><span class="q-type">Uraian</span></div><div class="q-text"><span class="q-number">${currentIndex+1}.</span> ${s.q}</div><div class="essay-item"><textarea data-essay="${eid}" placeholder="Tulis jawaban Anda..." maxlength="2000">${jawabanEssay[eid]||''}</textarea></div>`;
+    const ta=box.querySelector('textarea');
+    ta.addEventListener('input',()=>{jawabanEssay[eid]=ta.value;simpanProgress();updateProgress();});
+  }
+
+  document.getElementById('btnPrev').disabled = currentIndex===0;
+  const last = currentIndex===semuaSoal.length-1;
+  document.getElementById('btnNext').style.display = last?'none':'flex';
+  document.getElementById('btnSubmit').style.display = last?'flex':'none';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function hitungTerjawab(){let n=0;n+=Object.keys(jawabanPG).filter(k=>jawabanPG[k]!==undefined).length;n+=Object.values(jawabanEssay).filter(v=>v&&v.trim()).length;return n;}
+function updateProgress(){document.getElementById('answeredCount').textContent=hitungTerjawab();document.getElementById('progressFill').style.width=((currentIndex+1)/semuaSoal.length*100)+'%';}
+function simpanProgress(){try{localStorage.setItem('ujian_progress',JSON.stringify({jawabanPG,jawabanEssay,nama,kelas,timeLeft}));}catch(e){}}
+function muatProgress(){try{const p=JSON.parse(localStorage.getItem('ujian_progress')||'null');if(p){jawabanPG=p.jawabanPG||{};jawabanEssay=p.jawabanEssay||{};}}catch(e){}}
+
+function mulaiTimer(){
+  timerInterval=setInterval(()=>{
+    timeLeft--;
+    const d=document.getElementById('timerDisplay');
+    d.textContent=formatTime(timeLeft);
+    if(timeLeft<=300)d.classList.add('danger');
+    if(timeLeft<=0){clearInterval(timerInterval);showToast('⏰ Waktu habis!',3000);setTimeout(()=>submitUjian(true),1200);}
+    if(timeLeft%10===0)simpanProgress();
+  },1000);
+}
+
+async function submitUjian(auto=false){
+  if(!examActive)return; examActive=false; clearInterval(timerInterval);
+  if(document.fullscreenElement)document.exitFullscreen?.().catch(()=>{});
+  document.getElementById('resultScreen').style.display='flex';
+  const s=document.getElementById('resultStatus');
+  const l=document.getElementById('resultLog');
+  s.textContent='⏳ Mengirim jawaban...';
+  l.innerHTML = violationLog.length?'<b>Log Pelanggaran:</b><br>'+violationLog.join('<br>'):'<i>Tidak ada pelanggaran. 👍</i>';
+  const payload={nama,kelas,token,jawabanPG,jawabanEssay,violations,violationLog,auto,waktuKirim:new Date().toISOString()};
+  const URL=window.SERVER_URL||'';
+  if(!URL||URL.includes('GANTI_DENGAN_URL')){s.textContent='⚠️ URL server belum diisi.';s.style.color='#f87171';return;}
+  try{
+    const res=await fetch(URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
+    const h=await res.json();
+    if(h&&h.status==='ok'){s.textContent='✅ Jawaban berhasil dikirim.';s.style.color='#22c55e';}
+    else{s.textContent='⚠️ Server: '+(h.message||'unknown');s.style.color='#fbbf24';}
+  }catch(err){s.textContent='❌ Gagal kirim ke server.';s.style.color='#f87171';try{const p=JSON.parse(localStorage.getItem('ujian_pending')||'[]');p.push(payload);localStorage.setItem('ujian_pending',JSON.stringify(p));}catch(e){}}
+  localStorage.removeItem('ujian_progress');
+}
+
+document.getElementById('startBtn').addEventListener('click',()=>{
+  nama=document.getElementById('inputNama').value.trim();
+  kelas=document.getElementById('inputKelas').value;
+  token=document.getElementById('inputToken').value.trim();
+  if(!nama){alert('Nama wajib diisi!');return;}
+  if(!kelas){alert('Pilih kelas!');return;}
+  document.getElementById('hdrNama').textContent=`${nama} (${kelas})`;
+  document.getElementById('lockScreen').style.display='none';
+  document.getElementById('examHeader').style.display='flex';
+  document.getElementById('progressBarWrap').style.display='block';
+  document.getElementById('examContent').style.display='block';
+  document.getElementById('bottomNav').style.display='flex';
+  examActive=true;
+  muatProgress();
+  buildSemuaSoal();
+  currentIndex=0;
+  renderSoal();
+  masukFullscreen();
+  mulaiTimer();
+  showToast('🔒 Ujian dimulai. 1 halaman = 1 soal.',3000);
+});
+
+document.getElementById('btnPrev').addEventListener('click',()=>{if(currentIndex>0){currentIndex--;renderSoal();}});
+document.getElementById('btnNext').addEventListener('click',()=>{if(currentIndex<semuaSoal.length-1){currentIndex++;renderSoal();}});
+document.getElementById('btnGrid').addEventListener('click',()=>{buildGrid();document.getElementById('gridModal').style.display='flex';});
+document.getElementById('gridClose').addEventListener('click',()=>{document.getElementById('gridModal').style.display='none';});
+document.getElementById('btnSubmit').addEventListener('click',()=>{
+  const belum=semuaSoal.length-hitungTerjawab();
+  let msg='Kumpulkan jawaban sekarang?';
+  if(belum>0)msg=`Masih ada ${belum} soal belum dijawab. Tetap kumpulkan?`;
+  if(confirm(msg))submitUjian(false);
+});
+
+function buildGrid(){
+  const g=document.getElementById('gridContainer');
+  g.innerHTML='';
+  semuaSoal.forEach((s,i)=>{
+    const b=document.createElement('button');
+    b.className='grid-btn'; b.textContent=i+1;
+    let done=false;
+    if(s.type==='pg')done=jawabanPG[s.idxAsli]!==undefined;
+    else done=!!(jawabanEssay[s.idxAsli]&&jawabanEssay[s.idxAsli].trim());
+    if(done)b.classList.add('done');
+    if(i===currentIndex)b.classList.add('current');
+    b.addEventListener('click',()=>{currentIndex=i;document.getElementById('gridModal').style.display='none';renderSoal();});
+    g.appendChild(b);
+  });
+}
+
+document.addEventListener('visibilitychange',()=>{if(examActive&&document.hidden)catatPelanggaran('tabswitch');});
+document.addEventListener('fullscreenchange',()=>{if(examActive&&!document.fullscreenElement)catatPelanggaran('fullscreen');});
+document.addEventListener('webkitfullscreenchange',()=>{if(examActive&&!document.webkitFullscreenElement)catatPelanggaran('fullscreen');});
+document.addEventListener('contextmenu',e=>{if(!examActive)return;e.preventDefault();catatPelanggaran('rightclick');});
+['copy','cut','paste'].forEach(ev=>{document.addEventListener(ev,e=>{if(!examActive)return;if(ev==='paste'&&e.target.tagName==='TEXTAREA')return;e.preventDefault();catatPelanggaran('copy');});});
+document.addEventListener('selectstart',e=>{if(!examActive)return;if(e.target.tagName==='TEXTAREA'||e.target.tagName==='INPUT')return;e.preventDefault();});
+document.addEventListener('keydown',e=>{
+  if(!examActive)return; const k=e.key.toLowerCase();
+  if(e.key==='F12'){e.preventDefault();catatPelanggaran('devtools');return;}
+  if(e.ctrlKey&&e.shiftKey&&['i','j','c'].includes(k)){e.preventDefault();catatPelanggaran('devtools');return;}
+  if(e.ctrlKey&&k==='u'){e.preventDefault();catatPelanggaran('devtools');return;}
+  if(e.ctrlKey&&['c','x','v','a','p','s'].includes(k)){if(e.target.tagName==='TEXTAREA'&&['c','x','v','a'].includes(k))return;e.preventDefault();if(['c','x','v'].includes(k))catatPelanggaran('copy');}
+});
+setInterval(()=>{if(!examActive)return;const w=window.outerWidth-window.innerWidth;const h=window.outerHeight-window.innerHeight;if(w>200||h>200)catatPelanggaran('devtools');},2000);
+window.addEventListener('beforeunload',e=>{if(examActive){e.preventDefault();e.returnValue='';return '';}});
+history.pushState(null,null,location.href);
+window.addEventListener('popstate',()=>{if(examActive){history.pushState(null,null,location.href);catatPelanggaran('tabswitch');showToast('⚠️ Tombol back dinonaktifkan.',2000);}});
+document.addEventListener('gesturestart',e=>e.preventDefault());
+</script>
+</body>
+</html>
