@@ -1,6 +1,6 @@
 /* KONFIGURASI UJIAN — PTS BAHASA INDONESIA KELAS XII */
 
-window.SERVER_URL = 'https://script.google.com/macros/s/AKfycbzGtY7g2qP1FB06Y4UMKpN0H74xCPk3IJrtH_IXvsBED3L-99YSp5kFY_iJ8-JRPkvz/exec';
+window.SERVER_URL = 'https://script.google.com/macros/s/AKfycbzPU1_VSisnIF2nCgLGhbRzOcQTe-HO6WlAw60hw6SgJLwBfUZVvhPdQGmnqzqRhBH3/exec';
 
 window.DURASI_MENIT = 90;
 
